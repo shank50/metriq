@@ -75,12 +75,7 @@ exports.getInventoryStatus = async (req, res) => {
             lowStock
         });
     } catch (error) {
-        console.error('[getInventoryStatus] Error:', {
-            message: error.message,
-            stack: error.stack,
-            userId: req.user?.id,
-            query: req.query
-        });
+        console.error('Error fetching inventory status:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 };

@@ -1,12 +1,13 @@
 const { Prisma } = require('@prisma/client');
 const prisma = require('../lib/prisma');
+const { retryQuery } = require('../lib/retryHelper');
 
 // Helper function to get user's stores and build tenant filter
 const getUserStoresFilter = async (userId, storeId) => {
-    const userStores = await prisma.tenant.findMany({
+    const userStores = await retryQuery(() => prisma.tenant.findMany({
         where: { userId },
         select: { id: true }
-    });
+    }));
 
     if (userStores.length === 0) {
         return null;
@@ -28,12 +29,12 @@ exports.getStats = async (req, res) => {
         }
 
         const [totalCustomers, totalOrders, totalSalesResult] = await Promise.all([
-            prisma.customer.count({ where: tenantFilter }),
-            prisma.order.count({ where: tenantFilter }),
-            prisma.order.aggregate({
+            retryQuery(() => prisma.customer.count({ where: tenantFilter })),
+            retryQuery(() => prisma.order.count({ where: tenantFilter })),
+            retryQuery(() => prisma.order.aggregate({
                 where: tenantFilter,
                 _sum: { totalPrice: true }
-            })
+            }))
         ]);
 
         // Calculate conversion rate (orders per customer)
@@ -46,9 +47,7 @@ exports.getStats = async (req, res) => {
             conversionRate: parseFloat(conversionRate)
         });
     } catch (error) {
-        console.error('=== [getStats] ERROR START ===');
         console.error(error);
-        console.error('=== [getStats] ERROR END ===');
         res.status(500).json({ error: 'Internal server error' });
     }
 };
@@ -58,10 +57,10 @@ exports.getSalesOverTime = async (req, res) => {
         const userId = req.user.id;
         const { interval = 'day', range, startDate, endDate, storeId } = req.query;
 
-        const userStores = await prisma.tenant.findMany({
+        const userStores = await retryQuery(() => prisma.tenant.findMany({
             where: { userId },
             select: { id: true }
-        });
+        }));
 
         if (userStores.length === 0) {
             return res.json([]);
@@ -127,7 +126,7 @@ exports.getSalesOverTime = async (req, res) => {
           ORDER BY date ASC
         `;
 
-        const sales = await prisma.$queryRawUnsafe(salesQuery);
+        const sales = await retryQuery(() => prisma.$queryRawUnsafe(salesQuery));
 
         const formattedSales = sales.map(s => ({
             date: s.date,
@@ -136,12 +135,7 @@ exports.getSalesOverTime = async (req, res) => {
 
         res.json(formattedSales);
     } catch (error) {
-        console.error('[getSalesOverTime] Error:', {
-            message: error.message,
-            stack: error.stack,
-            userId: req.user?.id,
-            query: req.query
-        });
+        console.error(error);
         res.status(500).json({ error: 'Internal server error' });
     }
 };
@@ -156,7 +150,7 @@ exports.getTopCustomers = async (req, res) => {
             return res.json([]);
         }
 
-        const customers = await prisma.customer.findMany({
+        const customers = await retryQuery(() => prisma.customer.findMany({
             where: tenantFilter,
             orderBy: { totalSpent: 'desc' },
             take: 5,
@@ -168,16 +162,11 @@ exports.getTopCustomers = async (req, res) => {
                 totalSpent: true,
                 ordersCount: true
             }
-        });
+        }));
 
         res.json(customers);
     } catch (error) {
-        console.error('[getTopCustomers] Error:', {
-            message: error.message,
-            stack: error.stack,
-            userId: req.user?.id,
-            query: req.query
-        });
+        console.error(error);
         res.status(500).json({ error: 'Internal server error' });
     }
 };
@@ -192,10 +181,10 @@ exports.getSalesByProduct = async (req, res) => {
             return res.json([]);
         }
 
-        const orders = await prisma.order.findMany({
+        const orders = await retryQuery(() => prisma.order.findMany({
             where: tenantFilter,
             select: { lineItems: true }
-        });
+        }));
 
         const productSales = {};
 
@@ -217,12 +206,7 @@ exports.getSalesByProduct = async (req, res) => {
 
         res.json(sortedProducts);
     } catch (error) {
-        console.error('[getSalesByProduct] Error:', {
-            message: error.message,
-            stack: error.stack,
-            userId: req.user?.id,
-            query: req.query
-        });
+        console.error(error);
         res.status(500).json({ error: 'Internal server error' });
     }
 };
@@ -237,7 +221,7 @@ exports.getRecentOrders = async (req, res) => {
             return res.json([]);
         }
 
-        const orders = await prisma.order.findMany({
+        const orders = await retryQuery(() => prisma.order.findMany({
             where: tenantFilter,
             orderBy: { createdAt: 'desc' },
             take: 20,
@@ -250,16 +234,11 @@ exports.getRecentOrders = async (req, res) => {
                     }
                 }
             }
-        });
+        }));
 
         res.json(orders);
     } catch (error) {
-        console.error('[getRecentOrders] Error:', {
-            message: error.message,
-            stack: error.stack,
-            userId: req.user?.id,
-            query: req.query
-        });
+        console.error(error);
         res.status(500).json({ error: 'Internal server error' });
     }
 };
@@ -275,12 +254,12 @@ exports.getAbandonedStats = async (req, res) => {
         }
 
         const [count, totalLostRevenue, totalOrders] = await Promise.all([
-            prisma.abandonedCheckout.count({ where: tenantFilter }),
-            prisma.abandonedCheckout.aggregate({
+            retryQuery(() => prisma.abandonedCheckout.count({ where: tenantFilter })),
+            retryQuery(() => prisma.abandonedCheckout.aggregate({
                 where: tenantFilter,
                 _sum: { totalPrice: true }
-            }),
-            prisma.order.count({ where: tenantFilter })
+            })),
+            retryQuery(() => prisma.order.count({ where: tenantFilter }))
         ]);
 
         // Calculate abandonment rate: abandoned / (abandoned + completed orders)
@@ -293,12 +272,7 @@ exports.getAbandonedStats = async (req, res) => {
             abandonmentRate: parseFloat(abandonmentRate)
         });
     } catch (error) {
-        console.error('[getAbandonedStats] Error:', {
-            message: error.message,
-            stack: error.stack,
-            userId: req.user?.id,
-            query: req.query
-        });
+        console.error(error);
         res.status(500).json({ error: 'Internal server error' });
     }
 };
