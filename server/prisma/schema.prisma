@@ -1,0 +1,111 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String?
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tenants   Tenant[]
+}
+
+model Tenant {
+  id                 String              @id @default(uuid())
+  storeName          String
+  shopifyDomain      String
+  accessToken        String?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  userId             String
+  abandonedCheckouts AbandonedCheckout[]
+  customers          Customer[]
+  orders             Order[]
+  products           Product[]
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([shopifyDomain, userId])
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  shopifyId   String
+  title       String
+  bodyHtml    String?
+  vendor      String?
+  productType String?
+  status      String?
+  tags        String?
+  variants    Json?
+  images      Json?
+  tenantId    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([shopifyId, tenantId])
+}
+
+model Customer {
+  id          String   @id @default(uuid())
+  shopifyId   String
+  firstName   String?
+  lastName    String?
+  email       String?
+  phone       String?
+  ordersCount Int      @default(0)
+  totalSpent  Float    @default(0.0)
+  tenantId    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  state       String?
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  orders      Order[]
+
+  @@unique([shopifyId, tenantId])
+}
+
+model Order {
+  id                String    @id @default(uuid())
+  shopifyId         String
+  orderNumber       Int?
+  totalPrice        Float
+  currency          String
+  financialStatus   String?
+  lineItems         Json?
+  customerId        String?
+  tenantId          String
+  processedAt       DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  email             String?
+  fulfillmentStatus String?
+  customer          Customer? @relation(fields: [customerId], references: [id])
+  tenant            Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([shopifyId, tenantId])
+}
+
+model AbandonedCheckout {
+  id                   String   @id @default(uuid())
+  shopifyId            String
+  token                String?
+  cartToken            String?
+  email                String?
+  totalPrice           Float
+  currency             String
+  abandonedCheckoutUrl String?
+  tenantId             String
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  tenant               Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([shopifyId, tenantId])
+}
