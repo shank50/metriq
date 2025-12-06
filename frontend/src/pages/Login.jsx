@@ -127,6 +127,31 @@ export default function Login() {
                             {loading ? 'Signing in...' : 'Sign In'}
                         </button>
                     </form>
+
+                    {/* Test Credentials */}
+                    <div style={{
+                        marginTop: '1.5rem',
+                        paddingTop: '1.5rem',
+                        borderTop: '1px solid var(--border-color)'
+                    }}>
+                        <p style={{
+                            fontSize: '0.875rem',
+                            color: 'var(--charcoal)',
+                            margin: '0 0 0.5rem 0',
+                            fontWeight: '600'
+                        }}>
+                            🧪 Test Credentials
+                        </p>
+                        <p style={{
+                            fontSize: '0.8125rem',
+                            color: 'var(--warm-gray)',
+                            margin: 0,
+                            lineHeight: '1.5'
+                        }}>
+                            <strong>Email:</strong> admin@metriq.com<br />
+                            <strong>Password:</strong> password123
+                        </p>
+                    </div>
                 </div>
 
                 {/* Register Link */}
