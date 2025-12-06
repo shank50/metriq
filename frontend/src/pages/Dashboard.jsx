@@ -189,14 +189,17 @@ export default function Dashboard() {
         }
     };
 
-    const applyCustomDates = () => {
+    const applyCustomDates = async () => {
         if (customDates.start && customDates.end) {
             const start = new Date(customDates.start);
             const end = new Date(customDates.end);
             const diffTime = Math.abs(end - start);
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
             setDateRange(`${diffDays}d`);
+            setShowCustomPicker(false);
             toast.success(`Custom range applied: ${diffDays} days`);
+            // Fetch new data with the custom range
+            await fetchDashboardData(true);
         }
     };
 
@@ -1096,7 +1099,7 @@ export default function Dashboard() {
                                             height: '78px',
                                             borderRadius: '999px',
                                             overflow: 'hidden',
-                        display: 'flex',
+                                            display: 'flex',
                                             border: '1px solid rgba(255, 255, 255, 0.08)',
                                             background: 'linear-gradient(120deg, rgba(5, 12, 26, 0.95), rgba(15, 24, 45, 0.95))',
                                             boxShadow: 'inset 0 0 40px rgba(0, 0, 0, 0.45)'
@@ -1104,17 +1107,17 @@ export default function Dashboard() {
                                             <div
                                                 onMouseEnter={() => setHoveredSegment('completed')}
                                                 style={{
-                                                width: `${Math.max(checkoutConversion, 0)}%`,
-                                                background: 'linear-gradient(120deg, #0FB5A8, #34CFC2)',
-                                                display: 'flex'
-                                            }}></div>
+                                                    width: `${Math.max(checkoutConversion, 0)}%`,
+                                                    background: 'linear-gradient(120deg, #0FB5A8, #34CFC2)',
+                                                    display: 'flex'
+                                                }}></div>
                                             <div
                                                 onMouseEnter={() => setHoveredSegment('dropoff')}
                                                 style={{
-                                                width: `${Math.max(dropoffPercent, 0)}%`,
-                                                background: 'linear-gradient(120deg, #F87171, #FB7185)',
-                                                display: 'flex'
-                                            }}></div>
+                                                    width: `${Math.max(dropoffPercent, 0)}%`,
+                                                    background: 'linear-gradient(120deg, #F87171, #FB7185)',
+                                                    display: 'flex'
+                                                }}></div>
                                         </div>
                                         {hoveredSegment === 'completed' && (
                                             <div style={{
