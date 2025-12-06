@@ -259,7 +259,7 @@ export default function Stores() {
                                         position: 'relative',
                                         transition: 'all 0.3s ease'
                                     }}>
-                                        {/* Delete Button - Hidden by default */}
+                                        
                                         <button
                                             onClick={() => handleDeleteStore(store.id, store.storeName)}
                                             className="store-delete-btn"
@@ -277,7 +277,7 @@ export default function Stores() {
                                                 display: 'flex',
                                                 alignItems: 'center',
                                                 justifyContent: 'center',
-                                                opacity: 0,
+                                                opacity: 1,
                                                 transition: 'all 0.2s ease',
                                                 zIndex: 5
                                             }}
@@ -348,33 +348,17 @@ export default function Stores() {
 
                                         {/* Store Stats */}
                                         <div style={{
-                                            display: 'grid',
-                                            gridTemplateColumns: 'repeat(2, 1fr)',
-                                            gap: '0.75rem',
                                             padding: '1rem',
                                             background: 'var(--bg-surface)',
                                             borderRadius: 'var(--radius-md)',
                                             marginBottom: '1rem'
                                         }}>
-                                            <div>
-                                                <p style={{ fontSize: '0.7rem', color: 'var(--warm-gray)', margin: '0 0 0.25rem 0', textTransform: 'uppercase', fontWeight: '600' }}>
-                                                    Connected
-                                                </p>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
-                                                    <Calendar size={14} color="var(--sage)" />
-                                                    <p style={{ fontSize: '0.875rem', fontWeight: '600', color: 'var(--charcoal)', margin: 0 }}>
-                                                        {new Date(store.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <p style={{ fontSize: '0.7rem', color: 'var(--warm-gray)', margin: '0 0 0.25rem 0', textTransform: 'uppercase', fontWeight: '600' }}>
-                                                    Added
-                                                </p>
-                                                <p style={{ fontSize: '0.875rem', fontWeight: '600', color: 'var(--sage)', margin: 0 }}>
-                                                    {new Date(store.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                                                </p>
-                                            </div>
+                                            <p style={{ fontSize: '0.7rem', color: 'var(--warm-gray)', margin: '0 0 0.25rem 0', textTransform: 'uppercase', fontWeight: '600' }}>
+                                                Added
+                                            </p>
+                                            <p style={{ fontSize: '0.875rem', fontWeight: '600', color: 'var(--sage)', margin: 0 }}>
+                                                {new Date(store.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                            </p>
                                         </div>
 
                                         {/* View Dashboard Button */}
@@ -569,9 +553,9 @@ export default function Stores() {
                     box-shadow: var(--shadow-xl);
                 }
 
-                /* Delete button - only visible on card hover */
+                /* Delete button - always visible, enhanced on hover */
                 .store-card:hover .store-delete-btn {
-                    opacity: 1;
+                    transform: scale(1.05);
                 }
 
                 .store-delete-btn:hover {
